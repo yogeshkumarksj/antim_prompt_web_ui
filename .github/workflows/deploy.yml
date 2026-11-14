@@ -1,0 +1,52 @@
+name: Build and publish dist
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          # Prefer a repo Variable, then a Secret; otherwise use the production API default.
+          VITE_API_URL: ${{ vars.VITE_API_URL || secrets.VITE_API_URL || 'https://prompt-karo-backend.onrender.com' }}
+        run: npm run build
+
+      # Vite copies public/ into dist/ (.htaccess, robots.txt, sitemap.xml, favicon.png).
+      # Add .nojekyll so the published tree is plain static output (no Jekyll processing).
+      - name: Ensure .nojekyll in dist
+        run: touch dist/.nojekyll
+
+      - name: Publish dist/ to antim_prompt_web_ui_dict
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.DEPLOY_TOKEN }}
+          external_repository: yogeshkumarksj/antim_prompt_web_ui_dict
+          publish_branch: main
+          publish_dir: ./dist
+          # Replace the entire contents of the dist repo root with this build
+          # (do not leave stale hashed assets from previous builds).
+          keep_files: false
+          # peaceiris also writes .nojekyll by default (enable_jekyll/disable_nojekyll unset).
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: "Deploy antim_prompt_web_ui dist"
