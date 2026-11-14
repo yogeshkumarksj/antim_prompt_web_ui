@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Discover, copy and share high-quality AI image prompts." />
+    <title>Antim Prompt - Best AI Image Prompts</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx">
+	// web/index.html के अंदर script टैग में इसे ढूंढें और बदलें:
+
+	_flutter.loader.loadEntrypoint({
+	onEntrypointLoaded: function(engineInitializer) {
+    engineInitializer.initializeEngine({
+      // यह लाइन इमेजेस और CORS की समस्या को हल करती है
+      renderer: "html" 
+    }).then(function(appRunner) {
+      app_runner = appRunner;
+      appRunner.runApp();
+    });
+  }
+});
+	</script>
+  </body>
+</html>
