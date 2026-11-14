@@ -90,8 +90,12 @@ const PromptDetail = () => {
         <div className="relative group">
           <img 
             src={prompt.image_url} 
-            alt={prompt.title} 
-            className="w-full rounded-3xl border-4 border-primaryPurple/10 shadow-2xl object-cover" 
+            alt={prompt.title}
+            width={800}
+            height={800}
+            loading="lazy"
+            decoding="async"
+            className="w-full rounded-3xl border-4 border-primaryPurple/10 shadow-2xl object-cover aspect-square" 
           />
         </div>
         
