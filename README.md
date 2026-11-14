@@ -38,40 +38,41 @@ Copy `.env.example` to `.env` for local overrides. Only `VITE_*` vars are expose
 
 Admin authentication uses a key you type at `/admin`. The key is verified with `POST /admin/verify` (or sent as the `x-admin-key` header on admin requests if verify is not yet deployed) and stored only in `sessionStorage` — never hardcode it in source.
 
-## Deploy to Hostinger (`public_html`)
+## Deploy (CI → dist repo → Hostinger Git)
 
-1. Build locally (or in CI):
+On every push to `main` (and via **Actions → Build and publish dist → Run workflow**), GitHub Actions:
 
-   ```bash
-   npm ci
-   npm run build
-   ```
+1. Runs `npm ci` and `npm run build` (Node 20)
+2. Ensures `dist/` includes Vite-copied `public/` files (`.htaccess`, `robots.txt`, `sitemap.xml`, `favicon.png`) plus `.nojekyll`
+3. Pushes the **contents** of `dist/` to the root of [`yogeshkumarksj/antim_prompt_web_ui_dict`](https://github.com/yogeshkumarksj/antim_prompt_web_ui_dict) on branch `main` (via `DEPLOY_TOKEN`)
 
-2. Upload the **contents** of `dist/` into Hostinger `public_html` (File Manager or FTP/SFTP).
+Hostinger Git auto-deploy then pulls that repo into `public_html`.
 
-3. **Do not wipe the whole `public_html` folder.** Preserve existing server-side assets that are not part of this SPA, including:
+### Secret required on this repo
 
-   - `upload_handler.php`
-   - `uploads/` (and anything inside it)
+| Secret | Purpose |
+| --- | --- |
+| `DEPLOY_TOKEN` | Fine-grained GitHub PAT with **Contents: Read and write** on `antim_prompt_web_ui_dict` only |
 
-   Safe approach:
+Optional: Variable/secret `VITE_API_URL` if the API base URL should differ from the Render default at build time.
 
-   - Overwrite SPA files: `index.html`, `assets/`, `favicon.png`, `robots.txt`, `sitemap.xml`, `.htaccess`
-   - Leave `upload_handler.php` and `uploads/` untouched
-   - Avoid “delete everything then upload” deploys
+### Hostinger Git + existing PHP / `uploads/`
 
-4. The included `public/.htaccess` (copied into `dist/.htaccess` on build):
+Hostinger’s Git deploy into `public_html` can conflict with files that are **not** in the dist repo (`upload_handler.php`, `weather_media_sync.php`, `uploads/`). Do **not** commit those (or any secrets) into `antim_prompt_web_ui_dict`.
 
-   - Forces HTTPS (301)
-   - Redirects `www` → apex (`antimprompt.com`)
-   - SPA-falls back to `index.html` for client routes
-   - Does **not** SPA-fallback missing `/assets/*`, `robots.txt`, or `sitemap.xml` (those 404)
-   - Leaves `upload_handler.php` and `/uploads/` alone
-   - Long-cache hashed `/assets/*`; no-cache for `index.html`
-   - Enables compression
-   - Does **not** set `Access-Control-Allow-Origin: *`
+Safe setup:
 
-5. After upload, hard-refresh the site and confirm `/`, a deep link like `/privacy`, `/robots.txt`, and `/upload_handler.php` still behave as expected.
+1. In File Manager, **download a backup** of `upload_handler.php`, `weather_media_sync.php`, and the entire `uploads/` folder.
+2. hPanel → **Websites** → **Advanced** → **GIT**: connect `https://github.com/yogeshkumarksj/antim_prompt_web_ui_dict.git`, branch `main`, install path `public_html` (Hostinger often needs an empty/nearly empty path for the first clone).
+3. After the first pull, **re-upload** the PHP files and `uploads/` into `public_html` as untracked server-only files.
+4. Trigger a second deploy and confirm those files are still present. If Hostinger cleans untracked files on pull, keep PHP/`uploads/` outside the Git-managed tree (or restore them after each deploy) — do not put secrets into the dist repo.
+
+### SPA `.htaccess` (from `public/`)
+
+- Forces HTTPS (301), redirects `www` → apex
+- SPA fallback to `index.html` (not for missing `/assets/*`, `robots.txt`, `sitemap.xml`)
+- Leaves `/upload_handler.php` and `/uploads/` alone in rewrite rules
+- Long-cache hashed `/assets/*`; no-cache for `index.html`; compression on; no global `Access-Control-Allow-Origin: *`
 
 ## Project layout
 

@@ -1,4 +1,4 @@
-name: Deploy to Hostinger
+name: Build and publish dist
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build-and-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,16 +31,22 @@ jobs:
           VITE_API_URL: ${{ vars.VITE_API_URL || secrets.VITE_API_URL || 'https://prompt-karo-backend.onrender.com' }}
         run: npm run build
 
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      # Vite copies public/ into dist/ (.htaccess, robots.txt, sitemap.xml, favicon.png).
+      # Add .nojekyll so the published tree is plain static output (no Jekyll processing).
+      - name: Ensure .nojekyll in dist
+        run: touch dist/.nojekyll
+
+      - name: Publish dist/ to antim_prompt_web_ui_dict
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist/
-          # If the Hostinger FTP account's home directory is already public_html, change this to ./
-          server-dir: ./public_html/
-          # Never wipe the remote directory. Server-only files (upload_handler.php,
-          # weather_media_sync.php, uploads/, etc.) stay unless they were previously
-          # tracked in .ftp-deploy-sync-state.json from this action.
-          dangerous-clean-slate: false
+          personal_token: ${{ secrets.DEPLOY_TOKEN }}
+          external_repository: yogeshkumarksj/antim_prompt_web_ui_dict
+          publish_branch: main
+          publish_dir: ./dist
+          # Replace the entire contents of the dist repo root with this build
+          # (do not leave stale hashed assets from previous builds).
+          keep_files: false
+          # peaceiris also writes .nojekyll by default (enable_jekyll/disable_nojekyll unset).
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: "Deploy antim_prompt_web_ui dist"
