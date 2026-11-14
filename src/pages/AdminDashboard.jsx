@@ -13,6 +13,8 @@ import {
   Plus, List, Eye, Copy, Share2, FolderPlus, Save, Zap 
 } from 'lucide-react';
 
+const ADMIN_KEY_STORAGE = 'antim_admin_key';
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [prompts, setPrompts] = useState([]);
@@ -24,6 +26,8 @@ const AdminDashboard = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [adminKey, setAdminKey] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -36,17 +40,29 @@ const AdminDashboard = () => {
   const [imageFile, setImageFile] = useState(null);
   const [newCatName, setNewCatName] = useState("");
 
-  const ADMIN_SECRET = "promptverse_admin_secret_786";
+  const getStoredAdminKey = () => sessionStorage.getItem(ADMIN_KEY_STORAGE) || "";
+
+  const adminHeaders = () => ({
+    'x-admin-key': getStoredAdminKey() || adminKey,
+  });
 
   useEffect(() => {
-  if (isLoggedIn) {
-    fetchAllData();
-  }
-}, [isLoggedIn, activeTab, filterCategory, sortBy]); // इन dependencies को जोड़ें
+    const stored = getStoredAdminKey();
+    if (stored) {
+      setAdminKey(stored);
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchAllData();
+    }
+  }, [isLoggedIn, activeTab, filterCategory, sortBy]);
 
   const fetchAllData = async () => {
     try {
-      const headers = { 'x-admin-key': ADMIN_SECRET };
+      const headers = adminHeaders();
       const promptsUrl = `${BASE_URL}/prompts/?category=${filterCategory === "All" ? "" : filterCategory}&sort_by=${sortBy}`;
       const [pRes, cRes, sRes, setRes] = await Promise.all([
         axios.get(promptsUrl),
@@ -61,9 +77,53 @@ const AdminDashboard = () => {
     } catch (err) { console.error("Fetch Error:", err); }
   };
 
-  const handleLogin = () => {
-    if (adminKey === ADMIN_SECRET) setIsLoggedIn(true);
-    else alert("Invalid Admin Key!");
+  const handleLogin = async () => {
+    const key = adminKey.trim();
+    if (!key) {
+      setLoginError("Please enter your admin key.");
+      return;
+    }
+
+    setLoggingIn(true);
+    setLoginError("");
+
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/admin/verify`,
+        {},
+        { headers: { 'x-admin-key': key } }
+      );
+
+      if (res.status >= 200 && res.status < 300) {
+        sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
+        setIsLoggedIn(true);
+      } else {
+        setLoginError("Invalid admin key.");
+      }
+    } catch (err) {
+      const status = err.response?.status;
+
+      // Backend verify endpoint not deployed yet — fall back to header-only auth
+      if (status === 404) {
+        sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
+        setIsLoggedIn(true);
+        return;
+      }
+
+      if (status === 401 || status === 403) {
+        setLoginError("Invalid admin key.");
+      } else {
+        setLoginError("Unable to verify admin key. Please try again.");
+      }
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+    setAdminKey("");
+    setIsLoggedIn(false);
   };
 
   const handlePublish = async (e) => {
@@ -79,7 +139,7 @@ const AdminDashboard = () => {
       formData.append('file', imageFile);
 
       await axios.post(buildApiUrl('publish-prompt'), formData, {
-        headers: { 'Content-Type': 'multipart/form-data', 'x-admin-key': ADMIN_SECRET }
+        headers: { 'Content-Type': 'multipart/form-data', ...adminHeaders() }
       });
 
       alert("Published Successfully!");
@@ -91,14 +151,14 @@ const AdminDashboard = () => {
 
   const handleDeletePrompt = async (id) => {
     if (window.confirm("Delete this prompt?")) {
-      await axios.delete(`${BASE_URL}/prompts/${id}`, { headers: { 'x-admin-key': ADMIN_SECRET } });
+      await axios.delete(`${BASE_URL}/prompts/${id}`, { headers: adminHeaders() });
       fetchAllData();
     }
   };
 
   const handleAddCategory = async () => {
     if (!newCatName) return;
-    await axios.post(`${BASE_URL}/categories/`, { name: newCatName }, { headers: { 'x-admin-key': ADMIN_SECRET } });
+    await axios.post(`${BASE_URL}/categories/`, { name: newCatName }, { headers: adminHeaders() });
     setNewCatName("");
     fetchAllData();
   };
@@ -112,7 +172,7 @@ const AdminDashboard = () => {
         image_url: editingPrompt.image_url,
         category: editingPrompt.category
       }, {
-        headers: { 'x-admin-key': ADMIN_SECRET }
+        headers: adminHeaders()
       });
 
       alert("Updated Successfully!");
@@ -124,7 +184,7 @@ const AdminDashboard = () => {
   };
 
   const updateSetting = async (key, value) => {
-    await axios.post(`${BASE_URL}/settings/?key=${key}&value=${value}`, {}, { headers: { 'x-admin-key': ADMIN_SECRET } });
+    await axios.post(`${BASE_URL}/settings/?key=${key}&value=${value}`, {}, { headers: adminHeaders() });
     fetchAllData();
     alert("Setting Updated!");
   };
@@ -135,8 +195,24 @@ const AdminDashboard = () => {
         <div className="bg-white p-10 rounded-[2rem] shadow-2xl w-full max-w-md border border-gray-200">
           <h2 className="text-3xl font-black text-primaryPurple mb-2 text-center tracking-tighter">Antim Admin</h2>
           <p className="text-gray-400 text-center mb-8 text-sm font-medium uppercase tracking-widest">Secure Access</p>
-          <input type="password" placeholder="Enter Admin Key" className="w-full p-4 bg-gray-50 rounded-2xl mb-4 outline-none border-2 border-transparent focus:border-primaryPurple transition-all" onChange={(e) => setAdminKey(e.target.value)} />
-          <button onClick={handleLogin} className="w-full bg-primaryPurple text-white py-4 rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-purple-200 transition-all active:scale-95">Login to Dashboard</button>
+          <input
+            type="password"
+            placeholder="Enter Admin Key"
+            value={adminKey}
+            className="w-full p-4 bg-gray-50 rounded-2xl mb-4 outline-none border-2 border-transparent focus:border-primaryPurple transition-all"
+            onChange={(e) => setAdminKey(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !loggingIn && handleLogin()}
+          />
+          {loginError && (
+            <p className="text-red-500 text-sm font-medium mb-4 text-center">{loginError}</p>
+          )}
+          <button
+            onClick={handleLogin}
+            disabled={loggingIn}
+            className="w-full bg-primaryPurple text-white py-4 rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-purple-200 transition-all active:scale-95 disabled:opacity-60"
+          >
+            {loggingIn ? "Verifying..." : "Login to Dashboard"}
+          </button>
         </div>
       </div>
     );
@@ -160,6 +236,12 @@ const AdminDashboard = () => {
             <Settings className="mr-3" size={20} /> Settings
           </button>
         </nav>
+        <button
+          onClick={handleLogout}
+          className="mt-6 w-full p-3 rounded-2xl font-bold text-gray-500 hover:bg-gray-50 hover:text-red-500 transition-all text-sm"
+        >
+          Log out
+        </button>
       </aside>
 
       {/* Main Content */}
@@ -259,7 +341,17 @@ const AdminDashboard = () => {
                   <tbody className="divide-y divide-gray-50">
                     {prompts.map(p => (
                       <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="p-6"><img src={p.image_url} className="w-14 h-14 rounded-2xl object-cover shadow-sm" alt="" /></td>
+                        <td className="p-6">
+                          <img
+                            src={p.thumbnail_url || p.card_image_url || p.image_url}
+                            className="w-14 h-14 rounded-2xl object-cover shadow-sm"
+                            alt=""
+                            width={56}
+                            height={56}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </td>
                         <td className="p-6 font-bold text-gray-800">{p.title}</td>
                         <td className="p-6"><span className="bg-pink-50 text-accentPink px-3 py-1 rounded-lg text-xs font-black uppercase">{p.category}</span></td>
                         <td className="p-6 text-sm text-gray-500 font-medium">

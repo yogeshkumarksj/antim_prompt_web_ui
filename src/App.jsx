@@ -1,26 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import axios from 'axios';
 import { BASE_URL, APP_NAME } from './constants';
 import logo from './assets/logo.png';
 import PromptCard from './components/PromptCard';
-import PromptDetail from './pages/PromptDetail';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import Saved from './pages/Saved'; // इसे इम्पोर्ट करना न भूलें
-import AdminDashboard from './pages/AdminDashboard';
-import { Search, Sparkles, Heart, Zap } from 'lucide-react';
-import AiMagic from './pages/AiMagic';
-import InstaAudit from './pages/InstaAudit';
+import { Search, Heart, Zap } from 'lucide-react';
 
+const PromptDetail = lazy(() => import('./pages/PromptDetail'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const Saved = lazy(() => import('./pages/Saved'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AiMagic = lazy(() => import('./pages/AiMagic'));
+const InstaAudit = lazy(() => import('./pages/InstaAudit'));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center text-gray-400 font-bold">
+      Loading...
+    </div>
+  );
+}
 
 function Home() {
-  const [prompts, setPrompts] = useState([]);
-  const [categories, setCategories] = useState(["All"]);
-  const [selectedCat, setSelectedCat] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [prompts, setPrompts] = React.useState([]);
+  const [categories, setCategories] = React.useState(["All"]);
+  const [selectedCat, setSelectedCat] = React.useState("All");
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
 
-  // डेटा फेच करने का सही तरीका
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -44,11 +51,11 @@ function Home() {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchData();
-  }, [selectedCat, searchQuery]); // इन दोनों के बदलते ही डेटा लोड होगा
+  }, [selectedCat, searchQuery]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchCats = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/categories/`);
@@ -63,7 +70,7 @@ function Home() {
       <header className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-gridBorder z-50">
         <div className="max-w-[1400px] mx-auto px-4 py-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-4">
           <Link to="/" className="flex items-center shrink-0">
-            <img src={logo} alt="Antim Prompt" className="h-8 sm:h-10 md:h-12 w-auto" />
+            <img src={logo} alt="Antim Prompt" className="h-8 sm:h-10 md:h-12 w-auto" width={48} height={48} decoding="async" />
             <span className="ml-2 text-base sm:text-lg md:text-2xl font-black text-primaryPurple tracking-tighter">
               Antim Prompt
             </span>
@@ -135,15 +142,17 @@ function Home() {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/prompt/:id" element={<PromptDetail />} />
-      <Route path="/ai-magic" element={<AiMagic />} />
-      <Route path="/insta-audit" element={<InstaAudit />} />
-      <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route path="/saved" element={<Saved />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-    </Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/prompt/:id" element={<PromptDetail />} />
+        <Route path="/ai-magic" element={<AiMagic />} />
+        <Route path="/insta-audit" element={<InstaAudit />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/saved" element={<Saved />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Routes>
+    </Suspense>
   );
 }
 
