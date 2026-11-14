@@ -88,17 +88,23 @@ const AdminDashboard = () => {
     setLoginError("");
 
     try {
+      // OpenAPI AdminVerifyRequest requires JSON body {"key": "..."}; also send header for admin routes.
       const res = await axios.post(
         `${BASE_URL}/admin/verify`,
-        {},
-        { headers: { 'x-admin-key': key } }
+        { key },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': key,
+          },
+        }
       );
 
       if (res.status >= 200 && res.status < 300) {
         sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
         setIsLoggedIn(true);
       } else {
-        setLoginError("Invalid admin key.");
+        setLoginError("Wrong admin key");
       }
     } catch (err) {
       const status = err.response?.status;
@@ -111,7 +117,9 @@ const AdminDashboard = () => {
       }
 
       if (status === 401 || status === 403) {
-        setLoginError("Invalid admin key.");
+        setLoginError("Wrong admin key");
+      } else if (!err.response || status >= 500) {
+        setLoginError("Server error — could not reach the admin API. Please try again.");
       } else {
         setLoginError("Unable to verify admin key. Please try again.");
       }
