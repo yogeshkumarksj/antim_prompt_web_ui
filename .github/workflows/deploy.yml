@@ -31,10 +31,30 @@ jobs:
           VITE_API_URL: ${{ vars.VITE_API_URL || secrets.VITE_API_URL || 'https://prompt-karo-backend.onrender.com' }}
         run: npm run build
 
-      # Vite copies public/ into dist/ (.htaccess, robots.txt, sitemap.xml, favicon.png).
-      # Add .nojekyll so the published tree is plain static output (no Jekyll processing).
+      # Vite copies public/ into dist/ (.htaccess, robots.txt, sitemap.xml, favicon.png,
+      # .gitignore that protects Hostinger runtime paths). Add .nojekyll for plain output.
       - name: Ensure .nojekyll in dist
         run: touch dist/.nojekyll
+
+      # Fail closed: never publish uploads/ or any PHP into the dict repo (would overwrite
+      # or delete live Hostinger runtime data on the next Git deploy).
+      - name: Guard — dist must not contain uploads/ or PHP
+        run: |
+          set -euo pipefail
+          if [[ ! -f dist/.gitignore ]]; then
+            echo "::error::dist/.gitignore missing (expected from public/.gitignore)"
+            exit 1
+          fi
+          if [[ -d dist/uploads ]]; then
+            echo "::error::dist/uploads/ must not be published"
+            exit 1
+          fi
+          if find dist -type f -name '*.php' -print -quit | grep -q .; then
+            echo "::error::dist/ must not contain .php files"
+            find dist -type f -name '*.php' -print
+            exit 1
+          fi
+          echo "Guard OK: no uploads/ or .php in dist/; .gitignore present"
 
       - name: Publish dist/ to antim_prompt_web_ui_dict
         uses: peaceiris/actions-gh-pages@v4

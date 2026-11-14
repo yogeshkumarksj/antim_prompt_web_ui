@@ -43,10 +43,17 @@ Admin authentication uses a key you type at `/admin`. The key is verified with `
 On every push to `main` (and via **Actions → Build and publish dist → Run workflow**), GitHub Actions:
 
 1. Runs `npm ci` and `npm run build` (Node 20)
-2. Ensures `dist/` includes Vite-copied `public/` files (`.htaccess`, `robots.txt`, `sitemap.xml`, `favicon.png`) plus `.nojekyll`
-3. Pushes the **contents** of `dist/` to the root of [`yogeshkumarksj/antim_prompt_web_ui_dict`](https://github.com/yogeshkumarksj/antim_prompt_web_ui_dict) on branch `main` (via `DEPLOY_TOKEN`)
+2. Ensures `dist/` includes Vite-copied `public/` files (`.htaccess`, `robots.txt`, `sitemap.xml`, `favicon.png`, `.gitignore`) plus `.nojekyll`
+3. Fails the job if `dist/` contains `uploads/` or any `.php` file (so they can never land in the dict repo)
+4. Pushes the **contents** of `dist/` to the root of [`yogeshkumarksj/antim_prompt_web_ui_dict`](https://github.com/yogeshkumarksj/antim_prompt_web_ui_dict) on branch `main` (via `DEPLOY_TOKEN`)
 
-Hostinger Git auto-deploy then pulls that repo into `public_html`.
+Hostinger Git auto-deploy then pulls that repo into `public_html`. The published root `.gitignore` ignores `uploads/`, `upload_handler.php`, `weather_media_sync.php`, `*.php`, and `.ftp-deploy-sync-state.json`, so a Hostinger `git clean` (without `-x`) or reset leaves those untracked runtime files alone.
+
+### Do not
+
+- **Do not** disconnect or recreate the Hostinger **GIT** connection without first backing up `uploads/`, `upload_handler.php`, and `weather_media_sync.php` — the first clone often empties `public_html` and those files are not in git.
+- **Do not** turn off Hostinger daily backups; keep them on so a bad deploy can be restored.
+- **Do not** commit PHP, `uploads/`, or secrets into `antim_prompt_web_ui_dict`.
 
 ### Secret required on this repo
 
@@ -84,6 +91,7 @@ src/
   pages/               # Admin, AI Magic, Insta Audit, Privacy, Saved, Prompt detail
 public/
   .htaccess            # Hostinger SPA + caching rules
+  .gitignore           # Protects uploads/ + PHP on Hostinger Git deploys
   robots.txt
   sitemap.xml
   favicon.png
