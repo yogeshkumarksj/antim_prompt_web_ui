@@ -23,18 +23,51 @@ const fields = [
   },
 ];
 
+function copyWithSelection(text) {
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.position = "fixed";
+  area.style.top = "0";
+  area.style.left = "0";
+  area.style.opacity = "0";
+  document.body.appendChild(area);
+  area.focus();
+  area.select();
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  document.body.removeChild(area);
+  return ok;
+}
+
+async function copyText(text) {
+  // Selection copy has to run in the click, before any await, or the gesture expires.
+  if (copyWithSelection(text)) return true;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
 function CopyBlock({ label, text }) {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState("idle");
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      setCopied(false);
-    }
+    const ok = await copyText(text);
+    setStatus(ok ? "copied" : "failed");
+    window.setTimeout(() => setStatus("idle"), 1500);
   };
+
+  const labelText = status === "copied" ? "Copied" : status === "failed" ? "Couldn't copy" : "Copy";
 
   return (
     <div className="mt-4 rounded-2xl border border-gridBorder bg-promptBox p-4">
@@ -46,7 +79,7 @@ function CopyBlock({ label, text }) {
         className="mt-3 inline-flex items-center text-sm font-bold text-primaryPurple hover:underline"
       >
         <Copy size={16} className="mr-1" />
-        {copied ? "Copied" : "Copy"}
+        {labelText}
       </button>
     </div>
   );
