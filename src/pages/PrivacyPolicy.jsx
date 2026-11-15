@@ -1,95 +1,121 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck, Lock, Eye, Mail } from 'lucide-react';
-import { APP_NAME } from '../constants';
+import { Link } from "react-router-dom";
+import LegalPage, { LegalSection } from "../components/LegalPage";
+import BusinessFacts from "../components/BusinessFacts";
+import { BUSINESS } from "../config/business";
 
-const PrivacyPolicy = () => {
-  const navigate = useNavigate();
-
+export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <header className="bg-white border-b border-gridBorder sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center">
-          <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full transition-all">
-            <ArrowLeft size={24} className="text-primaryPurple" />
-          </button>
-          <h1 className="ml-4 text-xl font-bold text-gray-800">Privacy Policy</h1>
-        </div>
-      </header>
+    <LegalPage title="Privacy Policy" kicker={BUSINESS.brandName}>
+      <LegalSection title="1. Who we are">
+        <p>
+          This policy explains how <strong>{BUSINESS.legalName}</strong> ("we") handles information
+          when you use {BUSINESS.brandName}, also called {BUSINESS.productName}, at{" "}
+          {BUSINESS.websiteLabel}. The site is part of {BUSINESS.groupName}. It offers a free prompt
+          library and digital AI tools. Some of those tools are paid. We do not sell physical goods.
+        </p>
+      </LegalSection>
 
-      <main className="max-w-4xl mx-auto px-4 mt-10">
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gridBorder">
-          <div className="flex items-center mb-8">
-            <div className="bg-primaryPurple/10 p-3 rounded-2xl mr-4">
-              <ShieldCheck size={32} className="text-primaryPurple" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-black text-gray-900">Privacy Matters</h2>
-              <p className="text-gray-500 text-sm">Last updated: August 2026</p>
-            </div>
-          </div>
+      <LegalSection title="2. Information we collect">
+        <p>We collect only what the feature you use needs:</p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>Search words and the prompts you open, copy, or share, stored as anonymous counts.</li>
+          <li>The Instagram username you type into Insta Reach Booster.</li>
+          <li>The niche or theme you type into Viral Insta Songs or Viral AI Art Trends.</li>
+          <li>
+            Details you send us yourself, such as your name, email, or phone, when you write to
+            support.
+          </li>
+          <li>
+            Saved prompts, which stay in this browser's local storage. We do not upload that private
+            library.
+          </li>
+          <li>Basic technical logs, such as browser type and the time of a request, used to run and protect the site.</li>
+          <li>
+            If you pay for a digital service, our payment gateway shares the payment status, amount,
+            and a transaction reference. We do not receive or store your full card number, CVV, or
+            UPI PIN.
+          </li>
+        </ul>
+      </LegalSection>
 
-          <div className="space-y-8 text-gray-700 leading-relaxed">
-            {/* Section 1 */}
-            <section>
-              <h3 className="text-lg font-bold text-secondaryBlue flex items-center mb-3">
-                <Eye size={20} className="mr-2" /> 1. Information We Collect
-              </h3>
-              <p>
-                At <strong>{APP_NAME}</strong>, we value your privacy. We do not require users to create an account. 
-                However, we may collect minimal data such as device type, operating system, and app usage statistics 
-                to improve our services.
-              </p>
-            </section>
+      <LegalSection title="3. How we use it">
+        <p>
+          We use this information to show prompts, generate the AI report you asked for, enforce the
+          daily cap on AI tools, reply to you, prevent abuse, and understand which prompts are
+          useful. We do not sell personal information.
+        </p>
+      </LegalSection>
 
-            {/* Section 2 */}
-            <section>
-              <h3 className="text-lg font-bold text-accentPink flex items-center mb-3">
-                <Lock size={20} className="mr-2" /> 2. Local Storage
-              </h3>
-              <p>
-                Your "Saved Prompts" are stored locally on your device using browser local storage or phone memory. 
-                We do not upload your personal collections to our servers. If you clear your data or uninstall the app, 
-                this information may be lost.
-              </p>
-            </section>
+      <LegalSection title="4. Who we share it with">
+        <p>We share data with service providers only so the site can function:</p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>The host that runs this website and the API.</li>
+          <li>The database that stores the public prompt catalogue.</li>
+          <li>An AI provider that writes the text of a report from the details you submitted.</li>
+          <li>An Instagram data source, only when you ask for a profile score.</li>
+          <li>A payment gateway, only when you pay for a digital service.</li>
+        </ul>
+        <p>
+          Those providers process data under their own terms. We do not control Instagram, Meta, or
+          the AI provider.
+        </p>
+      </LegalSection>
 
-            {/* Section 3 */}
-            <section>
-              <h3 className="text-lg font-bold text-primaryPurple flex items-center mb-3">
-                <ShieldCheck size={20} className="mr-2" /> 3. Third-Party Services
-              </h3>
-              <p>
-                We use third-party services like Render (for hosting) and Supabase (for database management). 
-                These services have their own privacy policies regarding data handling. We also display images 
-                hosted on external servers.
-              </p>
-            </section>
+      <LegalSection title="5. Local storage">
+        <p>
+          Saved prompts and the admin session key (if you use the private admin page) stay in this
+          browser. Clearing site data removes them. The admin key is not written into the public
+          website code.
+        </p>
+      </LegalSection>
 
-            {/* Section 4 */}
-            <section>
-              <h3 className="text-lg font-bold text-gray-800 mb-3">4. Analytics</h3>
-              <p>
-                We track the number of views, copies, and shares for each prompt. This data is anonymous and 
-                is used only to show trending content to our community.
-              </p>
-            </section>
+      <LegalSection title="6. How long we keep it">
+        <p>
+          Prompt view and copy counts stay as aggregate statistics. Messages you send us are kept
+          until the request is resolved, then deleted when we no longer need them. A short log of AI
+          requests may be kept so we can apply the daily limit and fix failures. You can ask us to
+          delete contact details we hold about you.
+        </p>
+      </LegalSection>
 
-            {/* Contact Section */}
-            <div className="mt-12 p-6 bg-promptBox rounded-2xl border border-gridBorder border-dashed text-center">
-              <Mail className="mx-auto mb-3 text-primaryPurple" size={30} />
-              <h4 className="font-bold text-gray-900">Have Questions?</h4>
-              <p className="text-sm text-gray-600 mb-4">Feel free to reach out to our support team.</p>
-              <a href="mailto:support@antimgroups.com" className="text-primaryPurple font-bold hover:underline">
-                support@antimprompt.com
-              </a>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+      <LegalSection title="7. Children">
+        <p>
+          This website is not directed at anyone under 18. We do not knowingly collect their
+          personal information. If you believe a minor's information reached us, contact us and we
+          will delete it.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="8. Your choices">
+        <p>
+          You can stop using the tools at any time, clear local storage, and ask us to correct or
+          delete information you sent us. Write to the email on the{" "}
+          <Link to="/contact" className="font-bold text-primaryPurple hover:underline">
+            Contact Us
+          </Link>{" "}
+          page. We may need to keep a record where the law requires it, for example a paid
+          transaction.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="9. Security">
+        <p>
+          The public site is served over HTTPS. No method of transmission is perfectly secure. Do
+          not send passwords or card details by email.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="10. Changes">
+        <p>
+          We will post updates on this page and change the date above. Continued use of the site
+          after an update means you accept the revised policy.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="11. Contact">
+        <p className="mb-4">Questions about this policy can be sent using the details below.</p>
+        <BusinessFacts />
+      </LegalSection>
+    </LegalPage>
   );
-};
-
-export default PrivacyPolicy;
+}

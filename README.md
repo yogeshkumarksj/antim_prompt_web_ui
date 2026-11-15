@@ -36,6 +36,18 @@ Dev server: [http://localhost:5173](http://localhost:5173)
 
 Copy `.env.example` to `.env` for local overrides. Only `VITE_*` vars are exposed to the client bundle.
 
+Business details that are still unknown (legal name, address, support email and phone, GSTIN, the Insta Reach Booster price, and the refund window) live in `src/config/business.js`. Replace each `[BRACKETED]` value there before a payment review. Do not put payment-gateway code or secrets in that file.
+
+AI Magic calls use that base URL:
+
+| Tool | Method and path | Body |
+| --- | --- | --- |
+| Insta Reach Booster | `GET /ai-magic/insta-audit/{username}` | — |
+| Viral Insta Songs | `POST /ai-magic/viral-insta-songs` | `niche`, optional `region`, optional `language` |
+| Viral AI Art Trends | `POST /ai-magic/viral-ai-art-trends` | `niche`, optional `platform` |
+
+A success body has `status: "success"`. A spent cap is HTTP 429 with `Limit reached, try tomorrow.` The page shows that sentence. Other failures use FastAPI's `detail` string.
+
 Admin authentication uses a key you type at `/admin`. The key is verified with `POST /admin/verify` (or sent as the `x-admin-key` header on admin requests if verify is not yet deployed) and stored only in `sessionStorage` — never hardcode it in source.
 
 ## Deploy (CI → dist repo → Hostinger Git)
@@ -86,9 +98,10 @@ Safe setup:
 ```
 src/
   App.jsx              # Routes (lazy-loaded pages) + home feed
-  constants.js         # BASE_URL from VITE_API_URL
-  components/          # PromptCard, etc.
-  pages/               # Admin, AI Magic, Insta Audit, Privacy, Saved, Prompt detail
+  constants.js         # BASE_URL from VITE_API_URL, AI Magic URL helper
+  config/business.js   # Legal name, address, prices, and other placeholders
+  components/          # PromptCard, footer, shared AI and policy layout
+  pages/               # Admin, AI tools, policies, pricing, about, contact, saved
 public/
   .htaccess            # Hostinger SPA + caching rules
   .gitignore           # Protects uploads/ + PHP on Hostinger Git deploys

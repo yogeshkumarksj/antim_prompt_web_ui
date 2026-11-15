@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { BASE_URL, APP_NAME } from '../constants';
+import { BASE_URL } from '../constants';
+import SiteFooter from '../components/SiteFooter';
 import { 
-  Search, Zap, ShieldAlert, ArrowLeft, 
+  ShieldAlert, ArrowLeft, 
   TrendingUp, CheckCircle2, AlertCircle, 
-  BarChart3, User, Star 
+  BarChart3, User, Star, Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { DAILY_LIMIT_MESSAGE, interpretAiError, interpretAiResponse } from '../utils/aiFeature';
 
 const InstaAudit = () => {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ const InstaAudit = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [limitReached, setLimitReached] = useState(false);
 
   const handleAudit = async (e) => {
     e.preventDefault();
@@ -22,25 +25,28 @@ const InstaAudit = () => {
     setLoading(true);
     setError("");
     setResult(null);
+    setLimitReached(false);
 
     try {
       const cleanUsername = username.replace('@', '').trim();
-      const res = await axios.get(`${BASE_URL}/ai-magic/insta-audit/${cleanUsername}`);
-      
-      if (res.data.status === "success") {
-        setResult(res.data);
-      } else {
-        setError(res.data.message || "Something went wrong");
-      }
+      const res = await axios.get(`${BASE_URL}/ai-magic/insta-audit/${encodeURIComponent(cleanUsername)}`);
+      const outcome = interpretAiResponse(res);
+
+      if (outcome.kind === "limit") setLimitReached(true);
+      else if (outcome.kind === "success") setResult(outcome.data);
+      else setError(outcome.message);
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to fetch audit. Please try again.");
+      const outcome = interpretAiError(err);
+      if (outcome.kind === "limit") setLimitReached(true);
+      else if (!err.response) setError(outcome.message);
+      else setError(outcome.message || "Failed to fetch audit. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-20">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gridBorder sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center">
@@ -51,7 +57,7 @@ const InstaAudit = () => {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 mt-10">
+      <main className="max-w-5xl mx-auto px-4 mt-10 pb-16 w-full flex-1">
         {/* Search Section */}
         <div className="text-center mb-12">
           <h2 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">
@@ -59,7 +65,7 @@ const InstaAudit = () => {
           </h2>
           <p className="text-gray-500 font-medium mb-8">Enter your username to get a detailed growth report.</p>
           
-          <form onSubmit={handleAudit} className="max-w-2xl mx-auto flex gap-3">
+          <form onSubmit={handleAudit} className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               <input 
@@ -73,7 +79,7 @@ const InstaAudit = () => {
             <button 
               type="submit" 
               disabled={loading}
-              className="bg-primaryPurple text-white px-8 rounded-2xl font-bold hover:shadow-lg hover:shadow-purple-200 transition-all disabled:opacity-50 flex items-center"
+              className="bg-primaryPurple text-white px-8 py-4 rounded-2xl font-bold hover:shadow-lg hover:shadow-purple-200 transition-all disabled:opacity-50 flex items-center justify-center"
             >
               {loading ? "Analyzing..." : "SCAN"}
             </button>
@@ -81,8 +87,18 @@ const InstaAudit = () => {
         </div>
 
         {/* Error Message */}
-        {error && (
-          <div className="max-w-2xl mx-auto p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl flex items-center animate-in fade-in">
+        {limitReached && !loading && (
+          <div role="status" className="max-w-2xl mx-auto p-5 bg-amber-50 border border-amber-200 text-amber-950 rounded-[2rem] flex gap-3">
+            <Clock className="shrink-0 mt-0.5" />
+            <div>
+              <p className="font-black text-lg">{DAILY_LIMIT_MESSAGE}</p>
+              <p className="text-sm text-amber-900 mt-1">Today's allowance for this scan is used up. Come back tomorrow to run it again.</p>
+            </div>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div role="alert" className="max-w-2xl mx-auto p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl flex items-center">
             <ShieldAlert className="mr-3 shrink-0" />
             <p className="font-medium">{error}</p>
           </div>
@@ -192,6 +208,7 @@ const InstaAudit = () => {
           </div>
         )}
       </main>
+      <SiteFooter />
     </div>
   );
 };

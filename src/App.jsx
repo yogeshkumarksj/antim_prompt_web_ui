@@ -1,17 +1,26 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import axios from 'axios';
-import { BASE_URL, APP_NAME } from './constants';
+import { BASE_URL } from './constants';
 import logo from './assets/logo.png';
 import PromptCard from './components/PromptCard';
 import { Search, Heart, Zap } from 'lucide-react';
+import SiteFooter from './components/SiteFooter';
 
 const PromptDetail = lazy(() => import('./pages/PromptDetail'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const Terms = lazy(() => import('./pages/Terms'));
+const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
+const ShippingPolicy = lazy(() => import('./pages/ShippingPolicy'));
+const Contact = lazy(() => import('./pages/Contact'));
+const About = lazy(() => import('./pages/About'));
+const Pricing = lazy(() => import('./pages/Pricing'));
 const Saved = lazy(() => import('./pages/Saved'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AiMagic = lazy(() => import('./pages/AiMagic'));
 const InstaAudit = lazy(() => import('./pages/InstaAudit'));
+const ViralSongs = lazy(() => import('./pages/ViralSongs'));
+const ArtTrends = lazy(() => import('./pages/ArtTrends'));
 
 function RouteFallback() {
   return (
@@ -132,10 +141,7 @@ function Home() {
         )}
       </main>
 
-      <footer className="py-10 border-t border-gridBorder text-center bg-gray-50">
-        <p className="text-gray-400 text-sm mb-2">© 2026 {APP_NAME}</p>
-        <Link to="/privacy" className="text-secondaryBlue text-xs font-bold hover:text-primaryPurple">Privacy Policy & Terms</Link>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
@@ -148,7 +154,15 @@ function App() {
         <Route path="/prompt/:id" element={<PromptDetail />} />
         <Route path="/ai-magic" element={<AiMagic />} />
         <Route path="/insta-audit" element={<InstaAudit />} />
+        <Route path="/viral-songs" element={<ViralSongs />} />
+        <Route path="/art-trends" element={<ArtTrends />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
+        <Route path="/shipping-policy" element={<ShippingPolicy />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/saved" element={<Saved />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getSavedPrompts } from '../utils/savedStorage';
 import PromptCard from '../components/PromptCard';
 import { ArrowLeft, Heart } from 'lucide-react';
+import SiteFooter from '../components/SiteFooter';
 
 const Saved = () => {
   const [savedPrompts, setSavedPrompts] = useState([]);
@@ -12,8 +13,8 @@ const Saved = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="max-w-7xl mx-auto p-4 md:p-8 w-full flex-1">
         <header className="flex items-center justify-between mb-10">
           <Link to="/" className="flex items-center text-gray-500 font-bold hover:text-primaryPurple">
             <ArrowLeft className="mr-2" /> Back to Explore
@@ -38,6 +39,7 @@ const Saved = () => {
           </div>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 };
