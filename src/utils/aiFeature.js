@@ -1,10 +1,8 @@
 /**
- * Viral Insta Songs: POST /ai-magic/viral-insta-songs
- *   { niche, region?, language? }
- * Viral AI Art Trends: POST /ai-magic/viral-ai-art-trends
- *   { niche, platform? }
+ * Viral Insta Songs chart: GET /ai-magic/viral-insta-songs/top?category=
+ *   songs include cover_url, preview_url, track_url, reels_count (may be null).
+ * Viral AI Art Trends chart: GET /ai-magic/viral-ai-art-trends/browse?category=
  *
- * Success body: { status: "success", billing, disclaimer, summary, ... }
  * A spent cap is HTTP 429 with detail "Limit reached, try tomorrow."
  * The screen shows that same sentence.
  */
@@ -46,22 +44,6 @@ export function isDailyLimit(statusCode, data) {
   return false;
 }
 
-export function songsRequestBody(values) {
-  const body = { niche: String(values.niche || "").trim() };
-  const region = String(values.region || "").trim();
-  const language = String(values.language || "").trim();
-  if (region) body.region = region;
-  if (language) body.language = language;
-  return body;
-}
-
-export function artRequestBody(values) {
-  const body = { niche: String(values.niche || "").trim() };
-  const platform = String(values.platform || "").trim();
-  if (platform) body.platform = platform;
-  return body;
-}
-
 export function interpretAiResponse(response) {
   const data = response?.data ?? {};
   if (isDailyLimit(response?.status, data)) {
@@ -94,21 +76,6 @@ export function interpretAiError(error) {
   };
 }
 
-function asList(value) {
-  if (Array.isArray(value)) {
-    return value.filter((item) => item != null && item !== "");
-  }
-  if (typeof value === "string" && value.trim()) return [value.trim()];
-  return [];
-}
-
-function reportOf(data) {
-  if (data.ai_report && typeof data.ai_report === "object") return data.ai_report;
-  if (data.ai_audit && typeof data.ai_audit === "object") return data.ai_audit;
-  if (data.report && typeof data.report === "object") return data.report;
-  return {};
-}
-
 export function safeHttpUrl(value) {
   if (typeof value !== "string") return "";
   try {
@@ -118,93 +85,4 @@ export function safeHttpUrl(value) {
     return "";
   }
   return "";
-}
-
-function asTags(value) {
-  if (Array.isArray(value)) {
-    return value.map((item) => String(item || "").trim()).filter(Boolean);
-  }
-  if (typeof value === "string" && value.trim()) {
-    return value.split(/[,#]/).map((item) => item.trim()).filter(Boolean);
-  }
-  return [];
-}
-
-export function normalizeSongs(data) {
-  const report = reportOf(data);
-  const raw = data.songs || report.songs || [];
-  const songs = asList(raw).map((item, index) => {
-    if (typeof item === "string") {
-      return {
-        id: index,
-        title: item,
-        artist: "",
-        why: "",
-        reelIdea: "",
-        hook: "",
-        hashtags: [],
-      };
-    }
-    return {
-      id: item.id ?? index,
-      title: item.title || item.name || item.song || "Untitled track",
-      artist: item.artist || item.creator || "",
-      why: item.why_trending || item.why || item.reason || "",
-      reelIdea: item.reel_idea || item.best_for || item.use_for || "",
-      hook: item.hook || "",
-      hashtags: asTags(item.hashtags),
-    };
-  });
-  const input = data.input && typeof data.input === "object" ? data.input : {};
-
-  return {
-    niche: input.niche || data.niche || "",
-    region: input.region || "",
-    language: input.language || "",
-    summary: data.summary || report.summary || "",
-    disclaimer: data.disclaimer || "",
-    billing: data.billing || "",
-    songs,
-    howToUse: asList(data.how_to_use || report.how_to_use || data.recommendations),
-  };
-}
-
-export function normalizeArtTrends(data) {
-  const report = reportOf(data);
-  const raw = data.trends || report.trends || [];
-  const trends = asList(raw).map((item, index) => {
-    if (typeof item === "string") {
-      return {
-        id: index,
-        name: item,
-        why: "",
-        visualCues: [],
-        prompt: "",
-        negativePrompt: "",
-        caption: "",
-        imageUrl: "",
-      };
-    }
-    return {
-      id: item.id ?? index,
-      name: item.name || item.title || "Untitled trend",
-      why: item.why_it_works || item.why_viral || item.why || "",
-      visualCues: asTags(item.visual_cues),
-      prompt: item.prompt || item.prompt_example || item.example_prompt || "",
-      negativePrompt: item.negative_prompt || "",
-      caption: item.caption_idea || "",
-      imageUrl: safeHttpUrl(item.image_url || item.preview_url || item.thumbnail_url),
-    };
-  });
-  const input = data.input && typeof data.input === "object" ? data.input : {};
-
-  return {
-    niche: input.niche || data.niche || "",
-    platform: input.platform || "",
-    summary: data.summary || report.summary || "",
-    disclaimer: data.disclaimer || "",
-    billing: data.billing || "",
-    trends,
-    workflow: asList(data.workflow || report.workflow || data.recommendations),
-  };
 }
