@@ -14,3 +14,25 @@ body {
   background-color: white;
   color: #1f2937;
 }
+
+.song-chart-card {
+  display: grid;
+  grid-template-columns: auto 64px minmax(0, 1fr);
+  grid-template-areas: "rank cover body" "rank cover copy";
+  column-gap: 0.75rem;
+  row-gap: 0.75rem;
+  align-items: start;
+}
+
+.song-chart-rank { grid-area: rank; }
+.song-chart-cover { grid-area: cover; }
+.song-chart-body { grid-area: body; }
+.song-chart-copy { grid-area: copy; justify-self: end; }
+
+@media (min-width: 640px) {
+  .song-chart-card {
+    grid-template-columns: auto 64px minmax(0, 1fr) auto;
+    grid-template-areas: "rank cover body copy";
+    column-gap: 1rem;
+  }
+}
