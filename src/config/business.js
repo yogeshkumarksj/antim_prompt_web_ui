@@ -82,6 +82,21 @@ export const SERVICES = [
     ],
     delivery: "Shown on the Viral AI Art Trends page. Nothing is shipped.",
   },
+  {
+    id: "templates",
+    name: "Viral Templates",
+    price: "Free",
+    paid: false,
+    route: "/viral-templates",
+    blurb: "Free photo templates. Upload a picture, add a short line when the template asks for one, and download the image.",
+    points: [
+      "A grid of templates, with category filters when they exist",
+      "Your JPG, PNG, or WEBP photo, up to 5MB",
+      "Share or download the finished image",
+      "When the cap is spent the page says: Thodi der baad try karein.",
+    ],
+    delivery: "Shown on the Viral Templates page. Nothing is shipped.",
+  },
 ];
 
 export const PLACEHOLDERS = [

@@ -9,3 +9,5 @@ export const APP_TAGLINE = "Discover, Copy & Share the Best AI Prompts";
 export const VIRAL_SONGS_URL = `${BASE_URL}/ai-magic/viral-insta-songs`;
 /** Chart page GETs `${ART_TRENDS_URL}/categories` and `/browse?category=`. */
 export const ART_TRENDS_URL = `${BASE_URL}/ai-magic/viral-ai-art-trends`;
+/** Viral Templates page GETs this list and POSTs `/{id}/render`. */
+export const VIRAL_TEMPLATES_URL = `${BASE_URL}/ai-magic/viral-templates`;
