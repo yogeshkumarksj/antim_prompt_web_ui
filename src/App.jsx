@@ -21,6 +21,7 @@ const AiMagic = lazy(() => import('./pages/AiMagic'));
 const InstaAudit = lazy(() => import('./pages/InstaAudit'));
 const ViralSongs = lazy(() => import('./pages/ViralSongs'));
 const ArtTrends = lazy(() => import('./pages/ArtTrends'));
+const ViralTemplates = lazy(() => import('./pages/ViralTemplates'));
 
 function RouteFallback() {
   return (
@@ -156,6 +157,7 @@ function App() {
         <Route path="/insta-audit" element={<InstaAudit />} />
         <Route path="/viral-songs" element={<ViralSongs />} />
         <Route path="/art-trends" element={<ArtTrends />} />
+        <Route path="/viral-templates" element={<ViralTemplates />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />

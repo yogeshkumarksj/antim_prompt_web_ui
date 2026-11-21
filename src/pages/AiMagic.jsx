@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Camera, Music, Sparkles, ArrowRight, Zap } from "lucide-react";
+import { Camera, Images, Music, Sparkles, ArrowRight, Zap } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import SiteFooter from "../components/SiteFooter";
 import { PriceLabel } from "../components/BusinessFacts";
@@ -27,9 +27,16 @@ const presentation = {
     bgColor: "bg-pink-50",
     borderColor: "border-accentPink/20",
   },
+  templates: {
+    desc: "Photo templates. Add your picture and a short line, then share or download the image.",
+    icon: <Images size={32} />,
+    color: "text-primaryPurple",
+    bgColor: "bg-purple-50",
+    borderColor: "border-primaryPurple/20",
+  },
 };
 
-const tools = ["insta", "songs", "art"].map((id) => ({
+const tools = ["insta", "songs", "art", "templates"].map((id) => ({
   ...serviceById(id),
   ...presentation[id],
 }));
@@ -44,12 +51,12 @@ const AiMagic = () => {
             AI <span className="text-primaryPurple">Magic</span> Tools
           </h1>
           <p className="mx-auto max-w-2xl font-medium text-gray-500">
-            Viral Insta Songs and Viral AI Art Trends are free. Insta Reach Booster is a paid
+            Viral Insta Songs, Viral AI Art Trends, and Viral Templates are free. Insta Reach Booster is a paid
             digital profile score. Every result is shown on this website. Nothing is shipped.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
           {tools.map((tool) => (
             <div
               key={tool.id}
@@ -92,7 +99,7 @@ const AiMagic = () => {
           <div className="relative z-10">
             <h2 className="mb-4 text-3xl font-black">Free tools and paid reports</h2>
             <p className="mb-8 font-medium opacity-90">
-              The prompt library, Viral Insta Songs, and Viral AI Art Trends are free. Insta Reach
+              The prompt library, Viral Insta Songs, Viral AI Art Trends, and Viral Templates are free. Insta Reach
               Booster is a paid digital scan. A spent cap says: Limit reached, try tomorrow.
             </p>
             <Link

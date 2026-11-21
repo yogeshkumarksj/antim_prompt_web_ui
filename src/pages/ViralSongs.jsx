@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { AlertCircle, Clock, Copy } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import SiteFooter from "../components/SiteFooter";
-import StoryCardModal from "../components/StoryCardModal";
 import { serviceById } from "../config/business";
 import { VIRAL_SONGS_URL } from "../constants";
 import { interpretAiError, interpretAiResponse, safeHttpUrl } from "../utils/aiFeature";
@@ -207,7 +206,7 @@ function PauseGlyph() {
   );
 }
 
-function ChartSong({ song, index, isAll, categories, copied, onCopy, playingKey, onPlay, onStory }) {
+function ChartSong({ song, index, isAll, categories, copied, onCopy, playingKey, onPlay }) {
   const rank = isAll ? (song.overall_rank ?? song.rank ?? index + 1) : (song.rank ?? index + 1);
   const tags = Array.isArray(song.hashtags) ? song.hashtags : [];
   const searchText = typeof song.search_text === "string" ? song.search_text : "";
@@ -280,13 +279,6 @@ function ChartSong({ song, index, isAll, categories, copied, onCopy, playingKey,
             ))}
           </div>
         )}
-        <button
-          type="button"
-          onClick={() => onStory(song)}
-          className="mt-4 inline-flex items-center rounded-full bg-primaryPurple px-3 py-1.5 text-xs font-bold text-white"
-        >
-          Make Story Card
-        </button>
       </div>
       <button
         type="button"
@@ -310,7 +302,6 @@ export default function ViralSongs() {
   const [chartLimit, setChartLimit] = useState(false);
   const [copied, setCopied] = useState("");
   const [playingKey, setPlayingKey] = useState("");
-  const [storySong, setStorySong] = useState(null);
   const audioRef = useRef(null);
   const playTicket = useRef(0);
 
@@ -432,7 +423,6 @@ export default function ViralSongs() {
     }
   };
 
-  const closeStory = useCallback(() => setStorySong(null), []);
   const chips = [{ id: "all", label: "All" }, ...(categories.length ? categories : [{ id: "trending", label: "Trending" }])];
   const isAll = category === "all";
 
@@ -490,7 +480,6 @@ export default function ViralSongs() {
                 onCopy={copySearch}
                 playingKey={playingKey}
                 onPlay={togglePreview}
-                onStory={setStorySong}
               />
             ))}
             {chart.disclaimer && (
@@ -504,7 +493,6 @@ export default function ViralSongs() {
           </div>
         )}
       </main>
-      {storySong && <StoryCardModal song={storySong} onClose={closeStory} />}
       <SiteFooter />
     </div>
   );
